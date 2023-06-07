@@ -18,6 +18,12 @@ public class UserController {
 
 	@Autowired
 	public UserService userService;
+	
+	@GetMapping("/SayHello")
+	public String sayHello() {
+		return "Hello ";
+	}
+	
 
 	@GetMapping("/getAllData")
 	public Iterable<User> getAllData() {
