@@ -24,30 +24,28 @@ public class ElasticSearchConfig {
 
 	@Value("${elasticsearch.host}")
     private String host;
-
     @Value("${elasticsearch.port}")
     private String port;
     @Value("${server.ssl.key-store}")
-    private Resource trustStore;
+    private Resource keyStore;
     @Value("${server.ssl.key-store-password}")
-    private String trustStorePassword;
-    
-    String username = "elastic";
-    String password = "yL+ulSl=4q=2_Or*e99j";
+    private String keyStorePassword;
+    @Value("${spring.elasticsearch.rest.password}")
+	private String password;
+    @Value("${spring.elasticsearch.rest.username}")
+    private String username;
     
     @Bean 
     public RestClient elasticsearchRestClient()
     {
     	try {
     	    final SSLContext sslContext = SSLContexts.custom()
-    	            .loadTrustMaterial(trustStore.getURL(), trustStorePassword.toCharArray())
+    	            .loadTrustMaterial(keyStore.getURL(), keyStorePassword.toCharArray())
     	            .build();
     	    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
     	 
     	       credentialsProvider.setCredentials(AuthScope.ANY,
     	                  new UsernamePasswordCredentials(username, password));
-    	 
-    	       //Create a client.
     	       RestClientBuilder builder = RestClient.builder(new HttpHost(host, Integer.parseInt(port), "https"))
     	         .setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
     	           @Override
@@ -55,15 +53,10 @@ public class ElasticSearchConfig {
     	             return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider).setSSLContext(sslContext);
     	               }
     	             });
-//    	         .setDefaultHeaders(compatibilityHeaders());
     	       return builder.build();
     	   }catch(Exception e) {
     	    e.printStackTrace();
     	    return null;
     	   }
     	    }
-//    	    private Header[] compatibilityHeaders() {
-//    	        return new Header[]{new BasicHeader(HttpHeaders.ACCEPT, "application/vnd.elasticsearch+json;compatible-with=7"),
-//    	          new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/vnd.elasticsearch+json;compatible-with=7")};
-//    	     }
     }
