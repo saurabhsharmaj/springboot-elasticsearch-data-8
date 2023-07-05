@@ -2,22 +2,20 @@ package com.Elastic8SpringBoot3.ElasticSearchConfig;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+
+import co.elastic.clients.transport.TransportUtils;
 
 @Configuration
 public class ElasticSearchConfig {
@@ -26,22 +24,26 @@ public class ElasticSearchConfig {
     private String host;
     @Value("${elasticsearch.port}")
     private String port;
-    @Value("${server.ssl.key-store}")
-    private Resource keyStore;
-    @Value("${server.ssl.key-store-password}")
-    private String keyStorePassword;
-    @Value("${spring.elasticsearch.rest.password}")
-	private String password;
-    @Value("${spring.elasticsearch.rest.username}")
+    @Value("${elasticsearch.rest.username}")
     private String username;
+    @Value("${elasticsearch.rest.password}")
+	private String password;    
+    @Value("${elasticsearch.fingerprint}")
+    private String fingerprint;
+ 
+    
+   
     
     @Bean 
     public RestClient elasticsearchRestClient()
     {
     	try {
-    	    final SSLContext sslContext = SSLContexts.custom()
-    	            .loadTrustMaterial(keyStore.getURL(), keyStorePassword.toCharArray())
-    	            .build();
+    		SSLContext sslContext = TransportUtils .sslContextFromCaFingerprint(fingerprint);
+			/*
+			 * final SSLContext sslContext = SSLContexts.custom()
+			 * .loadTrustMaterial(keyStore.getURL(), keyStorePassword.toCharArray())
+			 * .build();
+			 */
     	    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
     	 
     	       credentialsProvider.setCredentials(AuthScope.ANY,
