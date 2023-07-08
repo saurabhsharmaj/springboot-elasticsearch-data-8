@@ -1,0 +1,25 @@
+version: '2'
+services:
+    nexus:
+      image: sonatype/nexus
+      volumes:
+        - "nexus-data:/sonatype-work"
+      ports:
+        - "8081:8081"  
+ 
+    message-server:
+        container_name: elastic-repo-server
+        build:
+            context: elastic-repo-server
+            dockerfile: Dockerfile
+        image: elastic-repo-server:latest
+        ports:
+            - 18888:8080
+        networks:
+            - spring-cloud-network
+volumes:
+  nexus-data: {}
+  
+networks:
+    spring-cloud-network:
+        driver: bridge

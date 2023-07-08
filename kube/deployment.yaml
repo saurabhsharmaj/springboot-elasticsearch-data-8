@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elastic-repo-server
+  labels:
+    app: elastic-repo-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elastic-repo-server
+  template:
+    metadata:
+      labels:
+        app: elastic-repo-server
+    spec:
+      containers:
+        - name: elastic-repo-server
+          imagePullPolicy: IfNotPresent
+          image: sourabhglobalfund/elastic-repo-server
