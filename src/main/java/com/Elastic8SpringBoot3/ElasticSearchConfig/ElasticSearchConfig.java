@@ -1,5 +1,11 @@
 package com.Elastic8SpringBoot3.ElasticSearchConfig;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpHost;
@@ -8,14 +14,13 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-
-import co.elastic.clients.transport.TransportUtils;
 
 @Configuration
 public class ElasticSearchConfig {
@@ -38,23 +43,30 @@ public class ElasticSearchConfig {
     public RestClient elasticsearchRestClient()
     {
     	try {
-    		SSLContext sslContext = TransportUtils .sslContextFromCaFingerprint(fingerprint);
-			/*
-			 * final SSLContext sslContext = SSLContexts.custom()
-			 * .loadTrustMaterial(keyStore.getURL(), keyStorePassword.toCharArray())
-			 * .build();
-			 */
+    		
+    		String keyStorePass = "welcome1";
+            Path trustStorePath = Paths.get("D:\\springboot-elasticsearch-data-8\\src\\main\\resources\\http.p12");
+            KeyStore truststore = KeyStore.getInstance("pkcs12");
+            try (InputStream is = Files.newInputStream(trustStorePath)) {
+                truststore.load(is, keyStorePass.toCharArray());
+            }
+            SSLContextBuilder sslBuilder = SSLContexts.custom()
+                .loadTrustMaterial(truststore, null);
+            SSLContext sslContext = sslBuilder.build();
+            
     	    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
     	 
-    	       credentialsProvider.setCredentials(AuthScope.ANY,
-    	                  new UsernamePasswordCredentials(username, password));
+    	       credentialsProvider.setCredentials(AuthScope.ANY,  new UsernamePasswordCredentials(username, password));
     	       RestClientBuilder builder = RestClient.builder(new HttpHost(host, Integer.parseInt(port), "https"))
     	         .setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
     	           @Override
     	           public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
-    	             return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider).setSSLContext(sslContext);
+    	             return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
+    	            		 .setSSLContext(sslContext)
+    	            		 ;
     	               }
-    	             });
+    	             })
+    	    		   ;
     	       return builder.build();
     	   }catch(Exception e) {
     	    e.printStackTrace();
